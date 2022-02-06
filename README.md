@@ -35,4 +35,4 @@ A) There are a few possible causes for this, 1) you may have lost your Internet 
 
 # Videos
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=I-8WRayvc3k
-" target="_blank"><img src="http://img.youtube.com/vi/I-8WRayvc3k/0.jpg" border="10" /></a>
+" target="_blank"><img src="https://raw.githubusercontent.com/TheSingleOneYT/BrowseIt/main/README_assets/BrowseIt_1.0_Video.png" border="10" /></a>
