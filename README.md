@@ -22,7 +22,7 @@ Used:
 # FAQ
 
 Q) Is this safe to use?<br>
-A) Anything I make is 100% SAFE! If you remain unsure, you can review the code behind the program.
+A) Anything I make is 100% Malware Free. If you remain unsure, you can review the code behind the program.
 
 Q) How can I set this up?<br>
 A) Check out this video {COMING SOON}
