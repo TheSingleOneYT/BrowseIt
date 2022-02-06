@@ -15,6 +15,6 @@ This browser has (probably) all props, walls, floors, etc marked in a database. 
 # Credits
 
 Used:
-- [NewtonSoft.JSON](https://github.com/JamesNK/Newtonsoft.Json) - [MIT](https://github.com/TheSingleOneYT/BrowseIt/blob/main/Licenses/Netwtonsoft.Json%20LICENSE.md) License
+- [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json) - [MIT](https://github.com/TheSingleOneYT/BrowseIt/blob/main/Licenses/Netwtonsoft.Json%20LICENSE.md) License
 - [ModernWpf](https://github.com/Kinnara/ModernWpf) - [MIT](https://github.com/TheSingleOneYT/BrowseIt/blob/main/Licenses/ModernWPF%20LICENSE) License
 - [CompiledBindings (WPF Version)](https://github.com/levitali/CompiledBindings/tree/master/source/WPF)
