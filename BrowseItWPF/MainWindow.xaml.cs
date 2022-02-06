@@ -101,7 +101,7 @@ namespace BrowseItWPF
 
             if (noOfItems > 100)
             {
-                Item o = new Item("Large results are not rendered.", "Results for search > 100", "INFO");
+                Item o = new Item("Large numbers of results are not loaded.", "Results for search > 100", "INFO");
                 name.Items.Add(o);
             }
             else
@@ -310,7 +310,7 @@ namespace BrowseItWPF
 
             HyperlinkButton hl2 = new HyperlinkButton();
             hl2.Content = "YouTube Video Link";
-            hl2.NavigateUri = new Uri("https://www.youtube.com/");
+            hl2.NavigateUri = new Uri("https://youtu.be/I-8WRayvc3k");
             sp.Children.Add(hl2);
 
             ContentDialog dialog = new ContentDialog();
