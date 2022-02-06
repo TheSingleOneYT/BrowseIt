@@ -35,4 +35,4 @@ A) There are a few possible causes for this, 1) you may have lost your Internet 
 
 # Videos
 
-<iframe src="https://youtu.be/I-8WRayvc3k" data-external= "1" > </iframe>
+[![Video](https://img.youtube.com/vi/I-8WRayvc3k/0.jpg)](https://www.youtube.com/watch?v=I-8WRayvc3k)
