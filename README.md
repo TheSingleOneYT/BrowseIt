@@ -25,7 +25,7 @@ Q) Is this safe to use?<br>
 A) Anything I make is 100% Malware Free. If you remain unsure, you can review the code behind the program.
 
 Q) How can I set this up?<br>
-A) Check out this video: https://youtu.be/I-8WRayvc3k
+A) Check out this video: https://youtu.be/rGGZGyH-ncM
 
 Q) How can I update the JSONDatabase? And, how often should I?<br>
 A) Press the 'Refresh' Button at the top, do this once every Fortnite update maybe a day after the update. Note - it may take a while for the Database to be uploaded due to the export process which takes a while.
