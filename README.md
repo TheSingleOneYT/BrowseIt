@@ -31,7 +31,7 @@ Q) How can I update the JSONDatabase? And, how often should I?<br>
 A) Press the 'Refresh' Button at the top, do this once every Fortnite update maybe a day after the update. Note - it may take a while for the Database to be uploaded due to the export process which takes a while.
 
 Q) I get an issue whilst trying to update the database, why?<br>
-A) There are a few possible causes for this, 1) you may have lost your Internet connection, 2) Github may be down, 3) something jsut went wrong.
+A) There are a few possible causes for this, 1) you may have lost your Internet connection, 2) Github may be down, 3) something just went wrong.
 
 # Videos
 <a href="https://youtu.be/rGGZGyH-ncM" target="_blank"><img src="https://raw.githubusercontent.com/TheSingleOneYT/BrowseIt/main/README_assets/BrowseIt_1.0_Video.png" border="10" /></a>
