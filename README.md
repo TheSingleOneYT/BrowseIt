@@ -34,5 +34,4 @@ Q) I get an issue whilst trying to update the database, why?<br>
 A) There are a few possible causes for this, 1) you may have lost your Internet connection, 2) Github may be down, 3) something jsut went wrong.
 
 # Videos
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=I-8WRayvc3k
-" target="_blank"><img src="https://raw.githubusercontent.com/TheSingleOneYT/BrowseIt/main/README_assets/BrowseIt_1.0_Video.png" border="10" /></a>
+<a href="https://youtu.be/rGGZGyH-ncM" target="_blank"><img src="https://raw.githubusercontent.com/TheSingleOneYT/BrowseIt/main/README_assets/BrowseIt_1.0_Video.png" border="10" /></a>
