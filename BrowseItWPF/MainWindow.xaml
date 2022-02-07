@@ -51,9 +51,30 @@
             <ui:CommandBar Background="Transparent" IsOpen="False" DefaultLabelPosition="Right">
                 <ui:AppBarButton Icon="OpenFile" Label="Open Image" x:Name="OpenImgInBrowser" Click="OpenImgInBrowser_Click"/>
                 <ui:AppBarToggleButton Icon="SlideShow" Label="Show Pop-up" IsChecked="True" x:Name="ShowCD"/>
-                <ui:AppBarButton Icon="Refresh" Label="Refresh" Click="Refresh_Click"/>
+                <ui:AppBarButton Icon="Refresh" Label="Refresh Databse" Click="Refresh_Click"/>
                 <ui:AppBarButton Icon="Help" Label="About" Click="AboutProj_Click"/>
+                <ui:AppBarButton Label="Database Tools">
+                    <ui:AppBarButton.Icon>
+                        <ui:FontIcon Glyph="&#xEC7A;"/>
+                    </ui:AppBarButton.Icon>
+                    <ui:AppBarButton.Flyout>
+                        <ui:CommandBarFlyout Placement="Right" x:Name="DatabaseTools" ui:ShowMode="Transient">
+                            <ui:AppBarButton Label="Refresh" Icon="Refresh" ToolTipService.ToolTip="Refresh Database" Click="Refresh_Click" />
+                            <ui:AppBarButton Label="Edit" ToolTipService.ToolTip="Advanced JSONDatabase Tools">
+                                <ui:AppBarButton.Icon>
+                                    <ui:FontIcon Glyph="&#xEC7A;"/>
+                                </ui:AppBarButton.Icon>
+                                <ui:AppBarButton.Flyout>
+                                    <ui:CommandBarFlyout Placement="Bottom" x:Name="AdvancedDBTools" ui:ShowMode="Standard" >
+                                        <ui:AppBarButton Label="Add" Icon="Add" ToolTipService.ToolTip="Add To Database" x:Name="AddToDatabase" Click="AddToDatabase_Click"/>
+                                        <ui:AppBarButton Label="Delete" Icon="Delete" ToolTipService.ToolTip="Delete From Database" x:Name="DelFromDatabase" Click="DelFromDatabase_Click"/>
+                                    </ui:CommandBarFlyout>
+                                </ui:AppBarButton.Flyout>
+                            </ui:AppBarButton>
+                        </ui:CommandBarFlyout>
 
+                    </ui:AppBarButton.Flyout>
+                </ui:AppBarButton>
             </ui:CommandBar>
             <ui:AutoSuggestBox QueryIcon="Find" QuerySubmitted="AutoSuggestBox_QuerySubmitted" x:Name="SearchBox"
                             TextChanged="AutoSuggestBox_TextChanged" SuggestionChosen="AutoSuggestBox_SuggestionChosen"/>

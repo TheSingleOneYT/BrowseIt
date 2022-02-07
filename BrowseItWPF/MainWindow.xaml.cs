@@ -2,16 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using BrowseIt.BenBot;
@@ -310,7 +305,7 @@ namespace BrowseItWPF
 
             HyperlinkButton hl2 = new HyperlinkButton();
             hl2.Content = "YouTube Video Link";
-            hl2.NavigateUri = new Uri("https://youtu.be/I-8WRayvc3k");
+            hl2.NavigateUri = new Uri("https://youtu.be/rGGZGyH-ncM");
             sp.Children.Add(hl2);
 
             ContentDialog dialog = new ContentDialog();
@@ -345,6 +340,88 @@ namespace BrowseItWPF
                 if (!itemClicked.Name.Contains("rendered"))
                     await dialog.ShowAsync();
             }
+        }
+
+        private async void AddToDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            StackPanel sp = new StackPanel();
+            AutoSuggestBox tb = new AutoSuggestBox();
+            AutoSuggestBox tb2 = new AutoSuggestBox();
+            TextBlock tbl = new TextBlock();
+
+            tbl.Text = "Enter details below:";
+            tb.PlaceholderText = "Name";
+
+            tb.TextChanged += Tb_TextChanged;
+            tb2.TextChanged += Tb2_TextChanged;
+
+            tb2.PlaceholderText = "gallery";
+
+            sp.Children.Add(tbl);
+            sp.Children.Add(tb);
+            sp.Children.Add(tb2);
+
+            ContentDialog dialog = new ContentDialog();
+            dialog.Content = sp;
+            dialog.Title = "Add To Database";
+            dialog.PrimaryButtonText = "Add";
+            dialog.PrimaryButtonClick += Dialog_PrimaryButtonClick;
+            dialog.CloseButtonText = "Cancel";
+            await dialog.ShowAsync();
+        }
+
+        private async void DelFromDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            StackPanel sp = new StackPanel();
+            AutoSuggestBox JSONToDel = new AutoSuggestBox();
+            TextBlock tbl = new TextBlock();
+
+            tbl.Text = "Enter file name below:";
+            JSONToDel.PlaceholderText = "File name";
+
+            JSONToDel.TextChanged += JSONToDel_TextChanged;
+
+            sp.Children.Add(tbl);
+            sp.Children.Add(JSONToDel);
+
+            ContentDialog dialog = new ContentDialog();
+            dialog.Content = sp;
+            dialog.Title = "Add To Database";
+            dialog.PrimaryButtonText = "Delete";
+            dialog.PrimaryButtonClick += JSONToDel_PrimaryButtonClick;
+            dialog.CloseButtonText = "Cancel";
+            await dialog.ShowAsync();
+        }
+
+        private void JSONToDel_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+            if (JSONtoDel != "" && File.Exists(JSONDatabase + "\\" + JSONtoDel + ".json"))
+                File.Delete(JSONDatabase + "\\" + JSONtoDel + ".json");
+        }
+
+        private string newJSONname;
+        private string newJSONgallery;
+        private string JSONtoDel;
+
+        private void JSONToDel_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            JSONtoDel = sender.Text;
+        }
+
+        private void Tb2_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            newJSONgallery = sender.Text;
+        }
+
+        private void Tb_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            newJSONname = sender.Text;
+        }
+
+        private void Dialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+            if (newJSONgallery != "" && newJSONname != "")
+                File.WriteAllText(JSONDatabase + "\\" + newJSONname + ".json", "{\"gallery\":\"" + newJSONgallery + "\"}");
         }
     }
 
