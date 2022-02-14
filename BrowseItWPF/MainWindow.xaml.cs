@@ -278,7 +278,7 @@ namespace BrowseItWPF
 
             TextBlock tb3 = new TextBlock();
             tb3.TextWrapping = TextWrapping.Wrap;
-            tb3.Text = "BrowseIt is a Fortnite Creative prop browser, made because Epic wouldn't do it themselves. " +
+            tb3.Text = "BrowseIt is a Fortnite Creative prop browser, made because Epic haven't done it themselves. " +
                 "It can be used as an alternative to FCHQ's Prop browser which doesn't include props but does include things like tags " +
                 "and memory usage.";
             sp.Children.Add(tb3);
@@ -326,11 +326,15 @@ namespace BrowseItWPF
                 StackPanel sp = new StackPanel();
                 PersonPicture pp = new PersonPicture();
                 TextBlock tb = new TextBlock();
+                TextBlock dashes = new TextBlock();
 
                 pp.ProfilePicture = new BitmapImage(new Uri(Benbot.GetImgURL(itemClicked.Name)));
                 tb.Text = $"NAME: {itemClicked.Name}\nGALLERY: {itemClicked.Gallery}";
+                dashes.Text = "---------";
+                dashes.HorizontalAlignment = HorizontalAlignment.Center;
 
                 sp.Children.Add(pp);
+                sp.Children.Add(dashes);
                 sp.Children.Add(tb);
 
                 ContentDialog dialog = new ContentDialog();
@@ -373,16 +377,23 @@ namespace BrowseItWPF
         private async void DelFromDatabase_Click(object sender, RoutedEventArgs e)
         {
             StackPanel sp = new StackPanel();
-            AutoSuggestBox JSONToDel = new AutoSuggestBox();
             TextBlock tbl = new TextBlock();
+            ModernWpf.Controls.ListView lst = new ModernWpf.Controls.ListView();
+            lst.Height = 200;
+            lst.SelectionChanged += Lst_SelectionChanged;
 
-            tbl.Text = "Enter file name below:";
-            JSONToDel.PlaceholderText = "File name";
+            foreach (var file in Directory.GetFiles(JSONDatabase))
+            {
+                lst.Items.Add(Path.GetFileNameWithoutExtension(file));
+            }
 
-            JSONToDel.TextChanged += JSONToDel_TextChanged;
+            lst.IsMultiSelectCheckBoxEnabled = true;
+            lst.SelectionMode = SelectionMode.Multiple;
+
+            tbl.Text = "Select Files Below:";
 
             sp.Children.Add(tbl);
-            sp.Children.Add(JSONToDel);
+            sp.Children.Add(lst);
 
             ContentDialog dialog = new ContentDialog();
             dialog.Content = sp;
@@ -393,20 +404,29 @@ namespace BrowseItWPF
             await dialog.ShowAsync();
         }
 
+        private void Lst_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            foreach (var si in e.AddedItems)
+            {
+                JSONtoDel.Add(si.ToString());
+            }
+
+            foreach (var ri in e.RemovedItems)
+            {
+                JSONtoDel.Remove(ri.ToString());
+            }
+        }
+
         private void JSONToDel_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
-            if (JSONtoDel != "" && File.Exists(JSONDatabase + "\\" + JSONtoDel + ".json"))
-                File.Delete(JSONDatabase + "\\" + JSONtoDel + ".json");
+            foreach (var file in JSONtoDel)
+                if (file != "" && File.Exists(JSONDatabase + "\\" + file + ".json"))
+                    File.Delete(JSONDatabase + "\\" + file + ".json");
         }
 
         private string newJSONname;
         private string newJSONgallery;
-        private string JSONtoDel;
-
-        private void JSONToDel_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-        {
-            JSONtoDel = sender.Text;
-        }
+        private List<string> JSONtoDel = new List<string>();
 
         private void Tb2_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {

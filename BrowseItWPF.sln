@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BrowseItWPF", "BrowseItWPF\BrowseItWPF.csproj", "{449ED17C-82AC-43F9-BB14-817DB7C3A1CC}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj", "{36629B67-A5BA-42FE-9D34-CC98E013C70A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JSONDB_Setup", "JSONDB_Setup\JSONDB_Setup.csproj", "{DD1F482A-C2F7-4712-843D-93538A57774F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,8 +17,10 @@ Global
 		{449ED17C-82AC-43F9-BB14-817DB7C3A1CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{449ED17C-82AC-43F9-BB14-817DB7C3A1CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{449ED17C-82AC-43F9-BB14-817DB7C3A1CC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{36629B67-A5BA-42FE-9D34-CC98E013C70A}.Debug|Any CPU.ActiveCfg = Debug
-		{36629B67-A5BA-42FE-9D34-CC98E013C70A}.Release|Any CPU.ActiveCfg = Release
+		{DD1F482A-C2F7-4712-843D-93538A57774F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD1F482A-C2F7-4712-843D-93538A57774F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD1F482A-C2F7-4712-843D-93538A57774F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD1F482A-C2F7-4712-843D-93538A57774F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

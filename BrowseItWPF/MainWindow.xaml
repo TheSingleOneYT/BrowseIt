@@ -51,7 +51,7 @@
             <ui:CommandBar Background="Transparent" IsOpen="False" DefaultLabelPosition="Right">
                 <ui:AppBarButton Icon="OpenFile" Label="Open Image" x:Name="OpenImgInBrowser" Click="OpenImgInBrowser_Click"/>
                 <ui:AppBarToggleButton Icon="SlideShow" Label="Show Pop-up" IsChecked="True" x:Name="ShowCD"/>
-                <ui:AppBarButton Icon="Refresh" Label="Refresh Databse" Click="Refresh_Click"/>
+                <ui:AppBarButton Icon="Refresh" Label="Refresh Database" Click="Refresh_Click"/>
                 <ui:AppBarButton Icon="Help" Label="About" Click="AboutProj_Click"/>
                 <ui:AppBarButton Label="Database Tools">
                     <ui:AppBarButton.Icon>
