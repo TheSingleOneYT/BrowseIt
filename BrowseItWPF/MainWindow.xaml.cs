@@ -12,6 +12,8 @@ using Newtonsoft.Json.Linq;
 using BrowseIt.BenBot;
 using System.Net;
 using System.IO.Compression;
+using Microsoft.Toolkit.Uwp.Notifications;
+using Windows.UI.Notifications;
 
 namespace BrowseItWPF
 {
@@ -106,9 +108,9 @@ namespace BrowseItWPF
                     if (item.ToLower().Contains(SearchBox.Text.ToLower()))
                     {
                         var jo = JObject.Parse(File.ReadAllText(item));
-                        var json = jo["gallery"].ToString();
+                        var pathToSUA = jo["pathToSUA"].ToString();
 
-                        Item o = new Item(Path.GetFileNameWithoutExtension(item), json, img: new BitmapImage(new Uri(Benbot.GetImgURL(Path.GetFileNameWithoutExtension(item)), UriKind.Absolute)));
+                        Item o = new Item(Path.GetFileNameWithoutExtension(item), jo["gallery"].ToString(), img: new BitmapImage(new Uri(Benbot.GetImgURL(Path.GetFileNameWithoutExtension(item), jo["gallery"].ToString(), pathToSUA), UriKind.Absolute)));
 
                         name.Items.Add(o);
                     }
@@ -123,9 +125,13 @@ namespace BrowseItWPF
                 ModernWpf.Controls.ListView listView = (ModernWpf.Controls.ListView)name;
                 int itemNumber = listView.Items.IndexOf(item);
                 Item itemClicked = (Item)listView.Items[itemNumber];
+
                 if (itemClicked != null)
                 {
-                    var uri = new Uri($"https://benbot.app/api/v1/exportAsset?path=FortniteGame/Content/Playsets/PlaysetProps/GeneratedThumbnails/PPID_ST_{itemClicked.Name.Replace("PPID_", "")}");
+                    var jo = JObject.Parse(File.ReadAllText(JSONDatabase + "\\" + itemClicked.Name + ".json"));
+                    var pathToSUA = jo["pathToSUA"].ToString();
+
+                    var uri = new Uri(Benbot.GetImgURL(itemClicked.Name, itemClicked.Gallery, pathToSUA));
 
                     await Windows.System.Launcher.LaunchUriAsync(uri);
                 }
@@ -133,6 +139,11 @@ namespace BrowseItWPF
         }
 
         private async void Refresh_Click(object sender, RoutedEventArgs e)
+        {
+            await UpdateDB();
+        }
+
+        private async Task UpdateDB()
         {
             StackPanel sp = new StackPanel();
             ModernWpf.Controls.ProgressRing pb = new ModernWpf.Controls.ProgressRing();
@@ -235,6 +246,8 @@ namespace BrowseItWPF
                 pb.Visibility = Visibility.Hidden;
                 dialog.CloseButtonText = "OK";
             }
+
+            ToastNotificationManagerCompat.History.Clear();
         }
 
         private void Dialog_CloseButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
@@ -328,7 +341,10 @@ namespace BrowseItWPF
                 TextBlock tb = new TextBlock();
                 TextBlock dashes = new TextBlock();
 
-                pp.ProfilePicture = new BitmapImage(new Uri(Benbot.GetImgURL(itemClicked.Name)));
+                var jo = JObject.Parse(File.ReadAllText(JSONDatabase + "\\" + itemClicked.Name + ".json"));
+                var pathToSUA = jo["pathToSUA"].ToString();
+
+                pp.ProfilePicture = new BitmapImage(new Uri(Benbot.GetImgURL(itemClicked.Name, itemClicked.Gallery, pathToSUA)));
                 tb.Text = $"NAME: {itemClicked.Name}\nGALLERY: {itemClicked.Gallery}";
                 dashes.Text = "---------";
                 dashes.HorizontalAlignment = HorizontalAlignment.Center;
@@ -442,6 +458,55 @@ namespace BrowseItWPF
         {
             if (newJSONgallery != "" && newJSONname != "")
                 File.WriteAllText(JSONDatabase + "\\" + newJSONname + ".json", "{\"gallery\":\"" + newJSONgallery + "\"}");
+        }
+
+        private async void Window_Initialized(object sender, EventArgs e)
+        {
+            if (hasInternet())
+            {
+                try
+                {
+                    string ver;
+                    HttpWebRequest req;
+
+                    req = (HttpWebRequest)WebRequest.Create("https://raw.githubusercontent.com/TheSingleOneYT/BrowseIt/main/JSONDatabase/Version.txt");
+                    using (WebResponse response = req.GetResponse())
+                    {
+                        using (Stream stream = response.GetResponseStream())
+                        {
+                            StreamReader reader = new StreamReader(stream);
+                            ver = reader.ReadToEnd();
+                        }
+                    }
+
+                    string installed;
+
+                    if (!File.Exists(AppData + "\\DatabaseVer.txt"))
+                        installed = "1";
+                    else
+                        installed = File.ReadAllText(AppData + "\\DatabaseVer.txt");
+
+                    if (ver == installed)
+                    {
+                    }
+                    else
+                    {
+                        new ToastContentBuilder()
+                            .AddText("An update was discovered for the JSONDatabase, we are updating now. Start-up time for this run maybe longer than usual.")
+                            .AddProgressBar("", status: "", valueStringOverride: "", isIndeterminate: true)
+                            .Show();
+
+                        this.Hide();
+
+                        await UpdateDB();
+                        this.Show();
+                    }
+                }
+                catch (WebException)
+                {
+
+                }
+            }
         }
     }
 
