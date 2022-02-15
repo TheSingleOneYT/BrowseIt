@@ -34,6 +34,42 @@ namespace BrowseIt.BenBot
                         url = $"https://benbot.app/api/v1/exportAsset?path={pathToSUA}PPIDS/Icons/PPID_ST_{asset.Replace("PPID_", "")}";
                     else
                         url = $"https://benbot.app/api/v1/exportAsset?path={pathToSUA}PPIDS/Icons/{asset}";
+
+                    try
+                    {
+                        wc.DownloadString(url);
+                    }
+                    catch (WebException)
+                    {
+                        if (!asset.StartsWith("PPID_ST"))
+                            url = $"https://benbot.app/api/v1/exportAsset?path={pathToSUA}PlaysetProps/GeneratedThumbnails/PPID_ST_{asset.Replace("PPID_", "")}";
+                        else
+                            url = $"https://benbot.app/api/v1/exportAsset?path={pathToSUA}PlaysetProps/GeneratedThumbnails/{asset}";
+
+                        try
+                        {
+                            wc.DownloadString(url);
+                        }
+                        catch (WebException)
+                        {
+                            if (!asset.StartsWith("PPID_ST"))
+                                url = $"https://benbot.app/api/v1/exportAsset?path={pathToSUA}Maps/PlaysetProps/GeneratedThumbnails/PPID_ST_{asset.Replace("PPID_", "")}";
+                            else
+                                url = $"https://benbot.app/api/v1/exportAsset?path={pathToSUA}Maps/PlaysetProps/GeneratedThumbnails/{asset}";
+
+                            try
+                            {
+                                wc.DownloadString(url);
+                            }
+                            catch (WebException)
+                            {
+                                if (!asset.StartsWith("PPID_ST"))
+                                    url = $"https://benbot.app/api/v1/exportAsset?path={pathToSUA}PlaysetProps/Icons/PPID_ST_{asset.Replace("PPID_", "")}";
+                                else
+                                    url = $"https://benbot.app/api/v1/exportAsset?path={pathToSUA}PlaysetProps/Icons/{asset}";
+                            }
+                        }
+                    }
                 }
             }
 
