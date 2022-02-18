@@ -15,7 +15,7 @@ Stuck? You can find help at the [Official Wiki](https://github.com/TheSingleOneY
 # Requirements
 - Windows based system
 - .NET 3.1 installed (included in installer)
-- A recommended amount of about 250MB or spare RAM
+- A recommended amount of about 250MB of spare RAM
 
 # Credits
 
