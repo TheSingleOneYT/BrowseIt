@@ -2,7 +2,7 @@
 ; https://jrsoftware.org/isinfo.php
 
 #define MyAppName "BrowseIt"
-#define MyAppVersion "1.2.1"
+#define MyAppVersion "1.3.0"
 #define MyAppPublisher "TS1"
 #define MyAppURL "https://github.com/TheSingleOneYT/BrowseIt"
 #define MyAppExeName "BrowseIt.exe"
@@ -24,7 +24,7 @@ LicenseFile=Assets\BrowseIt License.txt
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputBaseFilename=BrowseIt
+OutputBaseFilename=BrowseIt-setup
 SetupIconFile=Assets\icon.ico
 Compression=lzma
 SolidCompression=yes
@@ -76,7 +76,7 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall
 Filename: "{tmp}\windowsdesktop-runtime-3.1.22-win-x64.exe"; Parameters: /install /quiet /norestart; Check: DependencyInstall; Flags: runhidden; StatusMsg: Installing Windows .NET Runtime 3.1.22...
 Filename: "{tmp}\JSONDB_Setup.exe"; Check: DependencyInstall; Flags: runhidden; StatusMsg: Installing Latest JSONDatabase...
 ; The majority of the below + part of the 2 lines above is ripped from:

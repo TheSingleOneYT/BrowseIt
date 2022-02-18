@@ -8,9 +8,14 @@ This browser has (probably) all props, walls, floors, etc marked in a database. 
 
 # Install ⚙️
 
-1) Run setup.msi for a quick install and follow the steps.<br>
-2) Run the program and click the Refresh button.<br>
-3) Done! Explore to your hearts content!
+1) Run BrowseIt-setup.exe for a quick install and follow the steps.<br>
+2) Once installed, you're done! Explore to your hearts content!<br>
+Stuck? You can find help at the [Official Wiki](https://github.com/TheSingleOneYT/BrowseIt/wiki)!
+
+# Requirements
+- Windows based system
+- .NET 3.1 installed (included in installer)
+- A recommended amount of about 250MB or spare RAM
 
 # Credits
 
@@ -18,6 +23,7 @@ Used:
 - [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json) - [MIT](https://github.com/TheSingleOneYT/BrowseIt/blob/main/Licenses/Netwtonsoft.Json%20LICENSE.md) License
 - [ModernWpf](https://github.com/Kinnara/ModernWpf) - [MIT](https://github.com/TheSingleOneYT/BrowseIt/blob/main/Licenses/ModernWPF%20LICENSE) License
 - [CompiledBindings (WPF Version)](https://github.com/levitali/CompiledBindings/tree/master/source/WPF)
+- [WindowsCommunityToolkit](https://github.com/CommunityToolkit/WindowsCommunityToolkit) - [MIT](https://github.com/TheSingleOneYT/BrowseIt/blob/main/Licenses/WindowsCommunityToolkit%20LICENSE.md) License 
 
 # FAQ
 
@@ -34,4 +40,6 @@ Q) I get an issue whilst trying to update the database, why?<br>
 A) There are a few possible causes for this, 1) you may have lost your Internet connection, 2) Github may be down, 3) something just went wrong.
 
 # Videos
+<p align="center">
 <a href="https://youtu.be/rGGZGyH-ncM" target="_blank"><img src="https://raw.githubusercontent.com/TheSingleOneYT/BrowseIt/main/README_assets/BrowseIt_1.0_Video.png" border="10" /></a>
+</p>

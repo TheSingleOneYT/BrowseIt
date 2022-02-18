@@ -8,6 +8,7 @@
         ui:WindowHelper.UseModernWindowStyle="True"
         SizeChanged="Window_SizeChanged"
         Initialized="Window_Initialized"
+        Closing="Window_Closing"
         mc:Ignorable="d" Title="BrowseIt"
         MinHeight="450" MinWidth="800">
 
@@ -79,7 +80,7 @@
             </ui:CommandBar>
             <ui:AutoSuggestBox QueryIcon="Find" QuerySubmitted="AutoSuggestBox_QuerySubmitted" x:Name="SearchBox"
                             TextChanged="AutoSuggestBox_TextChanged" SuggestionChosen="AutoSuggestBox_SuggestionChosen"/>
-            <TextBlock FontSize="30" TextAlignment="Center" Text="------------------------------"/>
+            <TextBlock Text="-------------------------" HorizontalAlignment="Center" FontSize="20"/>
             <ui:ListView
                 SelectionMode="Single"
                 ItemTemplate="{StaticResource ContactListViewTemplate}"

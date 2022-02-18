@@ -16,6 +16,18 @@ namespace BrowseIt.BenBot
                     url = $"https://benbot.app/api/v1/exportAsset?path=FortniteGame/Content/Playsets/PlaysetProps/GeneratedThumbnails/PPID_ST_{asset.Replace("PPID_", "")}";
                 else
                     url = $"https://benbot.app/api/v1/exportAsset?path=FortniteGame/Content/Playsets/PlaysetProps/GeneratedThumbnails/{asset}";
+
+                try
+                {
+                    wc.DownloadString(url);
+                }
+                catch (WebException)
+                {
+                    if (!asset.StartsWith("PPID_ST"))
+                        url = $"https://benbot.app/api/v1/exportAsset?path=FortniteGame/Content/Playsets/PlaysetProps/Icons/PPID_ST_{asset.Replace("PPID_", "")}";
+                    else
+                        url = $"https://benbot.app/api/v1/exportAsset?path=FortniteGame/Content/Playsets/PlaysetProps/Icons/{asset}";
+                }
             }
             else
             {

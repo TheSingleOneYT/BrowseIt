@@ -13,7 +13,9 @@ using BrowseIt.BenBot;
 using System.Net;
 using System.IO.Compression;
 using Microsoft.Toolkit.Uwp.Notifications;
-using Windows.UI.Notifications;
+using System.Diagnostics;
+using System.Reflection;
+using System.ComponentModel;
 
 namespace BrowseItWPF
 {
@@ -24,6 +26,7 @@ namespace BrowseItWPF
     {
         string AppData = Environment.ExpandEnvironmentVariables("%LocalAppData%").ToString() + "\\BrowseIt";
         string JSONDatabase = Environment.ExpandEnvironmentVariables("%LocalAppData%").ToString() + "\\BrowseIt\\JSONDataBase";
+        string tempLocation = Environment.ExpandEnvironmentVariables("%temp%").ToString();
 
         public MainWindow()
         {
@@ -51,7 +54,8 @@ namespace BrowseItWPF
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
             {
                 var suitableItems = new List<string>();
-                var splitText = sender.Text.ToLower().Split(" ");
+                var wUnderscores = sender.Text.ToLower().Replace(" ", "_");
+                var splitText = wUnderscores.Split(" ");
                 foreach (var o in objects)
                 {
                     var found = splitText.All((key) =>
@@ -65,7 +69,7 @@ namespace BrowseItWPF
                 }
                 if (suitableItems.Count == 0)
                 {
-                    suitableItems.Add("No results found");
+                    suitableItems.Add("No results for '" + wUnderscores + "' found");
                 }
                 sender.ItemsSource = suitableItems;
             }
@@ -83,7 +87,7 @@ namespace BrowseItWPF
             name.MaxHeight = h - 150;
         }
 
-        private void AutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+        private async void AutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
         {
             name.Items.Clear();
 
@@ -99,6 +103,11 @@ namespace BrowseItWPF
             if (noOfItems > 100)
             {
                 Item o = new Item("Large numbers of results are not loaded.", "Results for search > 100", "INFO");
+                name.Items.Add(o);
+            }
+            else if (noOfItems == 0)
+            {
+                Item o = new Item("No results found :(", "Results = 0", "INFO");
                 name.Items.Add(o);
             }
             else
@@ -140,28 +149,56 @@ namespace BrowseItWPF
 
         private async void Refresh_Click(object sender, RoutedEventArgs e)
         {
-            await UpdateDB();
-        }
+            displayUpdateNote = "";
 
-        private async Task UpdateDB()
-        {
-            StackPanel sp = new StackPanel();
-            ModernWpf.Controls.ProgressRing pb = new ModernWpf.Controls.ProgressRing();
-            TextBlock tb = new TextBlock();
-            pb.IsActive = true;
-            pb.Width = 50;
-            pb.Height = 50;
+            updatePR.IsActive = true;
+            updatePR.Visibility = Visibility.Visible;
+            updatePR.Width = 50;
+            updatePR.Height = 50;
 
-            sp.Children.Add(pb);
-            sp.Children.Add(tb);
+            updateTB.Text = displayUpdateNote;
 
-            ContentDialog dialog = new ContentDialog();
-            dialog.Content = sp;
+            updateStackPanel.Children.Clear();
+            updateStackPanel.Children.Add(updatePR);
+            updateStackPanel.Children.Add(updateTB);
+
+            dialog.Content = updateStackPanel;
             dialog.Title = "Updating Database";
+            dialog.CloseButtonText = "";
             dialog.ShowAsync();
 
-            await Task.Delay(2000);
+            worker.WorkerSupportsCancellation = true;
+            worker.DoWork += worker_DoWork;
+            worker.RunWorkerCompleted += Worker_RunWorkerCompleted;
+            worker.RunWorkerAsync();
+            worker.Dispose();
+        }
 
+        private string displayUpdateNote;
+
+        private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            updatePR.Visibility = Visibility.Hidden;
+            dialog.CloseButtonText = "OK";
+            updateTB.Text = displayUpdateNote;
+
+            if (displayUpdateNote == "You have the latest JSONDatabase!")
+                dialog.CloseButtonClick += Dialog_CloseButtonClick;
+        }
+
+        private BackgroundWorker worker = new BackgroundWorker();
+
+        private ContentDialog dialog = new ContentDialog();
+        private TextBlock updateTB = new TextBlock();
+        private ProgressRing updatePR = new ProgressRing();
+        private StackPanel updateStackPanel = new StackPanel();
+
+        private async void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            await UpdateDB();
+        }
+        private async Task UpdateDB()
+        {
             if (hasInternet())
             {
                 string ver;
@@ -188,10 +225,7 @@ namespace BrowseItWPF
 
                     if (ver == installed)
                     {
-                        //pb.Value = 100;
-                        pb.Visibility = Visibility.Hidden;
-                        dialog.CloseButtonText = "OK";
-                        tb.Text = "You have the latest JSONDatabase!";
+                        displayUpdateNote = "You have the latest JSONDatabase!";
                     }
                     else
                     {
@@ -201,50 +235,39 @@ namespace BrowseItWPF
 
                         try
                         {
-                            wc.DownloadFile("https://github.com/TheSingleOneYT/BrowseIt/raw/main/JSONDatabase/files.zip", AppData + "\\.zip");
+                            var zipLoc = tempLocation + "\\" + Path.GetRandomFileName() + ".zip";
+                            var brtemp = tempLocation + "\\" + Path.GetRandomFileName() + "-BrowseItTempDIR";
 
-                            ZipFile.ExtractToDirectory(AppData + "\\.zip", AppData + "\\tmp");
+                            wc.DownloadFile("https://github.com/TheSingleOneYT/BrowseIt/raw/main/JSONDatabase/files.zip", zipLoc);
 
-                            foreach (var file in Directory.GetFiles(AppData + "\\tmp"))
+                            ZipFile.ExtractToDirectory(zipLoc, brtemp);
+
+                            foreach (var file in Directory.GetFiles(brtemp))
                             {
                                 File.Copy(file, JSONDatabase + $"\\{Path.GetFileName(file)}", true);
-                                File.Delete(file);
                             }
 
                             Directory.Delete(AppData + "\\tmp");
                             File.Delete(AppData + "\\.zip");
 
-                            //pb.Value = 100;
-                            pb.Visibility = Visibility.Hidden;
-                            dialog.CloseButtonText = "OK";
-                            tb.Text = "Successfully updated the JSONDatabase!";
+                            displayUpdateNote = "Successfully updated the JSONDatabase!";
                             File.WriteAllText(AppData + "\\DatabaseVer.txt", ver);
-
-                            dialog.CloseButtonClick += Dialog_CloseButtonClick;
                         }
-                        catch (WebException wex)
+                        catch (WebException)
                         {
-                            tb.Text = "An error happened whilst downloading the new JSONDatabase";
-                            //pb.Value = 100;
-                            pb.Visibility = Visibility.Hidden;
-                            dialog.CloseButtonText = "OK";
+                            displayUpdateNote = "An error happened whilst downloading the new JSONDatabase";
                         }
                     }
 
                 }
-                catch (WebException wex)
+                catch (WebException)
                 {
-                    tb.Text = "An error happened whilst downloading the new JSONDatabase";
-                    //pb.Value = 100;
-                    pb.Visibility = Visibility.Hidden;
-                    dialog.CloseButtonText = "OK";
+                    displayUpdateNote = "An error happened whilst downloading the new JSONDatabase";
                 }
             }
             else
             {
-                //pb.Value = 100;
-                pb.Visibility = Visibility.Hidden;
-                dialog.CloseButtonText = "OK";
+                displayUpdateNote = "No internet connection.";
             }
 
             ToastNotificationManagerCompat.History.Clear();
@@ -321,10 +344,10 @@ namespace BrowseItWPF
             hl2.NavigateUri = new Uri("https://youtu.be/rGGZGyH-ncM");
             sp.Children.Add(hl2);
 
-            ContentDialog dialog = new ContentDialog();
-            dialog.Content = sp;
-            dialog.CloseButtonText = "OK";
-            await dialog.ShowAsync();
+            ContentDialog d = new ContentDialog();
+            d.Content = sp;
+            d.CloseButtonText = "OK";
+            await d.ShowAsync();
         }
 
         private async void name_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -336,29 +359,32 @@ namespace BrowseItWPF
 
                 Item itemClicked = (Item)listView.Items[itemNumber];
 
-                StackPanel sp = new StackPanel();
-                PersonPicture pp = new PersonPicture();
-                TextBlock tb = new TextBlock();
-                TextBlock dashes = new TextBlock();
+                if (!itemClicked.Name.Contains("loaded") && !itemClicked.Name.Contains(":("))
+                {
+                    var jo = JObject.Parse(File.ReadAllText(JSONDatabase + "\\" + itemClicked.Name + ".json"));
+                    var pathToSUA = jo["pathToSUA"].ToString();
 
-                var jo = JObject.Parse(File.ReadAllText(JSONDatabase + "\\" + itemClicked.Name + ".json"));
-                var pathToSUA = jo["pathToSUA"].ToString();
+                    StackPanel sp = new StackPanel();
+                    PersonPicture pp = new PersonPicture();
+                    TextBlock tb = new TextBlock();
+                    TextBlock dashes = new TextBlock();
 
-                pp.ProfilePicture = new BitmapImage(new Uri(Benbot.GetImgURL(itemClicked.Name, itemClicked.Gallery, pathToSUA)));
-                tb.Text = $"NAME: {itemClicked.Name}\nGALLERY: {itemClicked.Gallery}";
-                dashes.Text = "---------";
-                dashes.HorizontalAlignment = HorizontalAlignment.Center;
+                    pp.ProfilePicture = new BitmapImage(new Uri(Benbot.GetImgURL(itemClicked.Name, itemClicked.Gallery, pathToSUA)));
+                    tb.Text = $"NAME: {itemClicked.Name}\nGALLERY: {itemClicked.Gallery}";
+                    dashes.Text = "---------";
+                    dashes.HorizontalAlignment = HorizontalAlignment.Center;
 
-                sp.Children.Add(pp);
-                sp.Children.Add(dashes);
-                sp.Children.Add(tb);
+                    sp.Children.Add(pp);
+                    sp.Children.Add(dashes);
+                    sp.Children.Add(tb);
 
-                ContentDialog dialog = new ContentDialog();
-                dialog.Content = sp;
-                dialog.Title = "OBJECT";
-                dialog.CloseButtonText = "OK";
-                if (!itemClicked.Name.Contains("rendered"))
-                    await dialog.ShowAsync();
+                    ContentDialog objectDR = new ContentDialog();
+                    objectDR.Content = sp;
+                    objectDR.Title = "OBJECT";
+                    objectDR.CloseButtonText = "OK";
+
+                    await objectDR.ShowAsync();
+                }
             }
         }
 
@@ -367,6 +393,7 @@ namespace BrowseItWPF
             StackPanel sp = new StackPanel();
             AutoSuggestBox tb = new AutoSuggestBox();
             AutoSuggestBox tb2 = new AutoSuggestBox();
+            AutoSuggestBox tb3 = new AutoSuggestBox();
             TextBlock tbl = new TextBlock();
 
             tbl.Text = "Enter details below:";
@@ -374,20 +401,30 @@ namespace BrowseItWPF
 
             tb.TextChanged += Tb_TextChanged;
             tb2.TextChanged += Tb2_TextChanged;
+            tb3.TextChanged += Tb3_TextChanged;
 
             tb2.PlaceholderText = "gallery";
+
+            tb3.Header = "Path to SetupAssets, note - if path does not contain /CRG/ put notCRG";
+            tb3.PlaceholderText = "SetupAssets Path";
 
             sp.Children.Add(tbl);
             sp.Children.Add(tb);
             sp.Children.Add(tb2);
+            sp.Children.Add(tb3);
 
-            ContentDialog dialog = new ContentDialog();
-            dialog.Content = sp;
-            dialog.Title = "Add To Database";
-            dialog.PrimaryButtonText = "Add";
-            dialog.PrimaryButtonClick += Dialog_PrimaryButtonClick;
-            dialog.CloseButtonText = "Cancel";
-            await dialog.ShowAsync();
+            ContentDialog addDR = new ContentDialog();
+            addDR.Content = sp;
+            addDR.Title = "Add To Database";
+            addDR.PrimaryButtonText = "Add";
+            addDR.PrimaryButtonClick += Dialog_PrimaryButtonClick;
+            addDR.CloseButtonText = "Cancel";
+            await addDR.ShowAsync();
+        }
+
+        private void Tb3_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            newPath = sender.Text;
         }
 
         private async void DelFromDatabase_Click(object sender, RoutedEventArgs e)
@@ -411,13 +448,13 @@ namespace BrowseItWPF
             sp.Children.Add(tbl);
             sp.Children.Add(lst);
 
-            ContentDialog dialog = new ContentDialog();
-            dialog.Content = sp;
-            dialog.Title = "Add To Database";
-            dialog.PrimaryButtonText = "Delete";
-            dialog.PrimaryButtonClick += JSONToDel_PrimaryButtonClick;
-            dialog.CloseButtonText = "Cancel";
-            await dialog.ShowAsync();
+            ContentDialog delDR = new ContentDialog();
+            delDR.Content = sp;
+            delDR.Title = "Delete from Databse";
+            delDR.PrimaryButtonText = "Delete";
+            delDR.PrimaryButtonClick += JSONToDel_PrimaryButtonClick;
+            delDR.CloseButtonText = "Cancel";
+            await delDR.ShowAsync();
         }
 
         private void Lst_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -440,7 +477,8 @@ namespace BrowseItWPF
                     File.Delete(JSONDatabase + "\\" + file + ".json");
         }
 
-        private string newJSONname;
+        private string newJSONname; 
+        private string newPath;
         private string newJSONgallery;
         private List<string> JSONtoDel = new List<string>();
 
@@ -457,13 +495,48 @@ namespace BrowseItWPF
         private void Dialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
             if (newJSONgallery != "" && newJSONname != "")
-                File.WriteAllText(JSONDatabase + "\\" + newJSONname + ".json", "{\"gallery\":\"" + newJSONgallery + "\"}");
+                File.WriteAllText(JSONDatabase + "\\" + newJSONname + ".json", "{\"gallery\":\"" + newJSONgallery + "\",\"pathToSUA\":\""+ newPath + "\"}");
         }
 
         private async void Window_Initialized(object sender, EventArgs e)
         {
+            WebClient webClient = new WebClient();
+
             if (hasInternet())
             {
+                try
+                {
+                    Assembly assembly = Assembly.GetExecutingAssembly();
+                    FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(assembly.Location);
+                    string version = fileVersionInfo.ProductVersion;
+
+                    string newVer = webClient.DownloadString("https://raw.githubusercontent.com/TheSingleOneYT/BrowseIt/main/Installer/Installer.iss")
+                        .Remove(0, 77 + 28);
+                    newVer = newVer.Remove(newVer.IndexOf('\"'), newVer.Length - newVer.IndexOf('\"'));
+
+                    if (newVer != version)
+                    {
+                        new ToastContentBuilder()
+                            .AddText($"A new version of BrowseIt ({newVer}) has been detected. The patch will now be installed.")
+                            .AddProgressBar("", status: "", valueStringOverride: "", isIndeterminate: true)
+                            .SetToastDuration(ToastDuration.Long)
+                            .Show();
+
+                        string setupTempName = $"{tempLocation}\\BrowseIt-{newVer}-{Path.GetRandomFileName()}.exe";
+
+                        webClient.DownloadFile(new Uri($"https://github.com/TheSingleOneYT/BrowseIt/releases/download/{newVer}/BrowseIt-setup.exe"), setupTempName);
+
+                        Process.Start(setupTempName, "/NORESTART /NOCANCEL /SILENT /ALLUSERS");
+                        ToastNotificationManagerCompat.History.Clear();
+                        Application.Current.Shutdown();
+                    }
+
+                }
+                catch (WebException)
+                {
+
+                }
+
                 try
                 {
                     string ver;
@@ -494,18 +567,30 @@ namespace BrowseItWPF
                         new ToastContentBuilder()
                             .AddText("An update was discovered for the JSONDatabase, we are updating now. Start-up time for this run maybe longer than usual.")
                             .AddProgressBar("", status: "", valueStringOverride: "", isIndeterminate: true)
+                            .SetToastDuration(ToastDuration.Long)
                             .Show();
 
                         this.Hide();
 
                         await UpdateDB();
                         this.Show();
+
+                        new ToastContentBuilder().AddText("JSONDatabase updated!").Show();
                     }
                 }
                 catch (WebException)
                 {
 
                 }
+            }
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            if (worker.IsBusy)
+            {
+                e.Cancel = true;
+                MessageBox.Show(this, "The JSONDatabase is currently being updated, you cannot close the app at this moment.", "BrowseIt", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
