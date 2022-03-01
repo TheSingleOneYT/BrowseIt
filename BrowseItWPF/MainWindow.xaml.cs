@@ -16,6 +16,8 @@ using Microsoft.Toolkit.Uwp.Notifications;
 using System.Diagnostics;
 using System.Reflection;
 using System.ComponentModel;
+using System.Windows.Threading;
+using System.Threading;
 
 namespace BrowseItWPF
 {
@@ -25,8 +27,17 @@ namespace BrowseItWPF
     public partial class MainWindow : Window
     {
         string AppData = Environment.ExpandEnvironmentVariables("%LocalAppData%").ToString() + "\\BrowseIt";
+        string SettingsJSON = Environment.ExpandEnvironmentVariables("%LocalAppData%").ToString() + "\\BrowseIt\\Settings.json";
         string JSONDatabase = Environment.ExpandEnvironmentVariables("%LocalAppData%").ToString() + "\\BrowseIt\\JSONDataBase";
+        string ImgDatabase = Environment.ExpandEnvironmentVariables("%LocalAppData%").ToString() + "\\BrowseIt\\ImgDatabase";
         string tempLocation = Environment.ExpandEnvironmentVariables("%temp%").ToString();
+
+        private BackgroundWorker LoadItemsWorker = new BackgroundWorker();
+        private ContentDialog LoadItemsDialog = new ContentDialog();
+        private StackPanel LoadItemsSP = new StackPanel();
+        private ProgressRing LoadItemsProgressRing = new ProgressRing();
+
+        private BitmapImage propImg;
 
         public MainWindow()
         {
@@ -36,12 +47,31 @@ namespace BrowseItWPF
             if (!Directory.Exists(JSONDatabase))
                 Directory.CreateDirectory(JSONDatabase);
 
+            if (!Directory.Exists(ImgDatabase))
+                Directory.CreateDirectory(ImgDatabase);
+
+            if (!File.Exists(SettingsJSON))
+                File.WriteAllText(SettingsJSON, "{\"DownloadImgs\":\"false\"}");
+
+            var jo = JObject.Parse(File.ReadAllText(SettingsJSON));
+            DImgsBool = bool.Parse(jo["DownloadImgs"].ToString().ToLower());
+
             InitializeComponent();
+
+            SettingsSP.Children.Add(DImgsCB);
 
             foreach (var item in Directory.GetFiles(JSONDatabase))
             {
                 objects.Add(Path.GetFileNameWithoutExtension(item));
             }
+
+            LoadItemsProgressRing.IsActive = true;
+            LoadItemsSP.Children.Add(LoadItemsProgressRing);
+            LoadItemsDialog.Content = LoadItemsSP;
+            LoadItemsDialog.Title = "Loading items. Please wait...";
+
+            LoadItemsWorker.DoWork += LoadItemsWorker_DoWork;
+            LoadItemsWorker.RunWorkerCompleted += LoadItemsWorker_RunWorkerCompleted;
         }
 
         private List<string> objects = new List<string>()
@@ -89,40 +119,85 @@ namespace BrowseItWPF
 
         private async void AutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
         {
-            name.Items.Clear();
+            LoadItemsDialog.ShowAsync();
+            LoadItemsWorker.RunWorkerAsync();
+        }
 
+        private void LoadItemsWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            LoadItemsDialog.Hide();
+        }
+
+        private void LoadItemsWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            var wc = new WebClient();
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                name.Items.Clear();
+            });
             int noOfItems = 0;
             foreach (var item in Directory.GetFiles(JSONDatabase))
             {
-                if (item.ToLower().Contains(SearchBox.Text.ToLower()))
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    noOfItems++;
-                }
+                    if (item.ToLower().Contains(SearchBox.Text.ToLower()))
+                    {
+                        noOfItems++;
+                    }
+                });
             }
 
             if (noOfItems > 100)
             {
                 Item o = new Item("Large numbers of results are not loaded.", "Results for search > 100", "INFO");
-                name.Items.Add(o);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    name.Items.Add(o);
+                });
             }
             else if (noOfItems == 0)
             {
                 Item o = new Item("No results found :(", "Results = 0", "INFO");
-                name.Items.Add(o);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    name.Items.Add(o);
+                });
             }
             else
             {
                 foreach (var item in Directory.GetFiles(JSONDatabase))
                 {
-                    if (item.ToLower().Contains(SearchBox.Text.ToLower()))
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        var jo = JObject.Parse(File.ReadAllText(item));
-                        var pathToSUA = jo["pathToSUA"].ToString();
+                        if (item.ToLower().Contains(SearchBox.Text.ToLower()))
+                        {
+                            var jo = JObject.Parse(File.ReadAllText(item));
+                            var pathToSUA = jo["pathToSUA"].ToString();
 
-                        Item o = new Item(Path.GetFileNameWithoutExtension(item), jo["gallery"].ToString(), img: new BitmapImage(new Uri(Benbot.GetImgURL(Path.GetFileNameWithoutExtension(item), jo["gallery"].ToString(), pathToSUA), UriKind.Absolute)));
+                            if (File.Exists(ImgDatabase + "\\" + Path.GetFileNameWithoutExtension(item) + ".png"))
+                                propImg = new BitmapImage(new Uri(ImgDatabase + "\\" + Path.GetFileNameWithoutExtension(item) + ".png"));
+                            else
+                            {
+                                propImg = new BitmapImage(new Uri(Benbot.GetImgURL(Path.GetFileNameWithoutExtension(item), pathToSUA)));
 
-                        name.Items.Add(o);
-                    }
+                                if (DImgsBool)
+                                {
+                                    try
+                                    {
+                                        wc.DownloadFile(Benbot.GetImgURL(Path.GetFileNameWithoutExtension(item), jo["pathToSUA"].ToString()), ImgDatabase + "\\" + Path.GetFileNameWithoutExtension(item) + ".png");
+                                    }
+                                    catch (WebException)
+                                    { }
+                                }
+                            }
+                                
+
+                            Item o = new Item(Path.GetFileNameWithoutExtension(item), jo["gallery"].ToString(), img: propImg);
+
+                            name.Items.Add(o);
+                        }
+                    });
                 }
             }
         }
@@ -140,7 +215,7 @@ namespace BrowseItWPF
                     var jo = JObject.Parse(File.ReadAllText(JSONDatabase + "\\" + itemClicked.Name + ".json"));
                     var pathToSUA = jo["pathToSUA"].ToString();
 
-                    var uri = new Uri(Benbot.GetImgURL(itemClicked.Name, itemClicked.Gallery, pathToSUA));
+                    var uri = new Uri(Benbot.GetImgURL(itemClicked.Name, pathToSUA));
 
                     await Windows.System.Launcher.LaunchUriAsync(uri);
                 }
@@ -150,6 +225,28 @@ namespace BrowseItWPF
         private async void Refresh_Click(object sender, RoutedEventArgs e)
         {
             displayUpdateNote = "";
+
+            ContentDialog downImgsQ = new ContentDialog();
+            Label l = new Label();
+            CheckBox cb = new CheckBox();
+            StackPanel sp = new StackPanel();
+
+            cb.Content = "Download images?";
+            l.Content = "Downloading images allows BrowseIt to be used without an internet connection.\n" +
+                "This will take a while though and is not recommended to be done this way.\n" +
+                "Check the box if you would like to.";
+
+            sp.Children.Add(l);
+            sp.Children.Add(cb);
+
+            downImgsQ.CloseButtonText = "Continue";
+            downImgsQ.Content = sp;
+            await downImgsQ.ShowAsync();
+
+            if (cb.IsChecked == true)
+                downImgs = true;
+            else
+                downImgs = false;
 
             updatePR.IsActive = true;
             updatePR.Visibility = Visibility.Visible;
@@ -172,17 +269,63 @@ namespace BrowseItWPF
             worker.RunWorkerCompleted += Worker_RunWorkerCompleted;
             worker.RunWorkerAsync();
             worker.Dispose();
+
+            if (cb.IsChecked == true)
+            {
+                displayUpdateNote = "\nDownloading Images";
+                updatePR.Visibility = Visibility.Visible;
+                dialog.CloseButtonText = "";
+                updateTB.Text = displayUpdateNote;
+                BackgroundWorker bw = new BackgroundWorker();
+                bw.DoWork += Bw_DoWork;
+                bw.RunWorkerCompleted += Bw_RunWorkerCompleted;
+                bw.RunWorkerAsync();
+                bw.Dispose();
+            }
         }
 
-        private string displayUpdateNote;
-
-        private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void Bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            displayUpdateNote = "Downloaded Images!";
             updatePR.Visibility = Visibility.Hidden;
             dialog.CloseButtonText = "OK";
             updateTB.Text = displayUpdateNote;
+        }
 
-            if (displayUpdateNote == "You have the latest JSONDatabase!")
+        private void Bw_DoWork(object sender, DoWorkEventArgs e)
+        {
+            if (hasInternet())
+            {
+                var wc = new WebClient();
+
+                foreach (var file in Directory.GetFiles(JSONDatabase))
+                {
+                    var jo = JObject.Parse(File.ReadAllText(file));
+                    try
+                    {
+                        wc.DownloadFile(new Uri(Benbot.GetImgURL(Path.GetFileNameWithoutExtension(file), jo["pathToSUA"].ToString())), ImgDatabase + "\\" + Path.GetFileNameWithoutExtension(file) + ".png");
+                    }
+                    catch (WebException)
+                    {
+
+                    }
+                }
+            }
+        }
+
+        private string displayUpdateNote;
+        private bool downImgs = false;
+
+        private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (downImgs == false)
+            {
+                updateTB.Text = displayUpdateNote;
+                dialog.CloseButtonText = "OK";
+                updatePR.Visibility = Visibility.Hidden;
+            }
+
+            if (displayUpdateNote == "Successfully updated the JSONDatabase!")
                 dialog.CloseButtonClick += Dialog_CloseButtonClick;
         }
 
@@ -229,12 +372,15 @@ namespace BrowseItWPF
                     }
                     else
                     {
-                        Directory.CreateDirectory(AppData + "\\tmp");
-
                         var wc = new WebClient();
 
                         try
                         {
+                            foreach (var file in Directory.GetFiles(JSONDatabase))
+                            {
+                                File.Delete(file);
+                            }
+
                             var zipLoc = tempLocation + "\\" + Path.GetRandomFileName() + ".zip";
                             var brtemp = tempLocation + "\\" + Path.GetRandomFileName() + "-BrowseItTempDIR";
 
@@ -246,9 +392,6 @@ namespace BrowseItWPF
                             {
                                 File.Copy(file, JSONDatabase + $"\\{Path.GetFileName(file)}", true);
                             }
-
-                            Directory.Delete(AppData + "\\tmp");
-                            File.Delete(AppData + "\\.zip");
 
                             displayUpdateNote = "Successfully updated the JSONDatabase!";
                             File.WriteAllText(AppData + "\\DatabaseVer.txt", ver);
@@ -369,7 +512,7 @@ namespace BrowseItWPF
                     TextBlock tb = new TextBlock();
                     TextBlock dashes = new TextBlock();
 
-                    pp.ProfilePicture = new BitmapImage(new Uri(Benbot.GetImgURL(itemClicked.Name, itemClicked.Gallery, pathToSUA)));
+                    pp.ProfilePicture = new BitmapImage(new Uri(Benbot.GetImgURL(itemClicked.Name, pathToSUA)));
                     tb.Text = $"NAME: {itemClicked.Name}\nGALLERY: {itemClicked.Gallery}";
                     dashes.Text = "---------";
                     dashes.HorizontalAlignment = HorizontalAlignment.Center;
@@ -380,7 +523,7 @@ namespace BrowseItWPF
 
                     ContentDialog objectDR = new ContentDialog();
                     objectDR.Content = sp;
-                    objectDR.Title = "OBJECT";
+                    objectDR.Title = "PROP";
                     objectDR.CloseButtonText = "OK";
 
                     await objectDR.ShowAsync();
@@ -592,6 +735,41 @@ namespace BrowseItWPF
                 e.Cancel = true;
                 MessageBox.Show(this, "The JSONDatabase is currently being updated, you cannot close the app at this moment.", "BrowseIt", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private bool DImgsBool;
+        private CheckBox DImgsCB= new CheckBox();
+        private StackPanel SettingsSP = new StackPanel();
+
+        private async void SettingsAppBarBTN_Click(object sender, RoutedEventArgs e)
+        {
+            DImgsCB.Unchecked += DImgsCB_CheckChange;
+            DImgsCB.Checked += DImgsCB_CheckChange;
+            DImgsCB.Content = "Download Images On Item Loaded?";
+
+            var settingsCD = new ContentDialog();
+            settingsCD.Title = "Settings";
+            settingsCD.Content = SettingsSP;
+            settingsCD.CloseButtonText = "Save";
+            settingsCD.CloseButtonClick += SettingsCD_CloseButtonClick;
+
+            if (DImgsBool)
+                DImgsCB.IsChecked = true;
+
+            await settingsCD.ShowAsync();
+        }
+
+        private void DImgsCB_CheckChange(object sender, RoutedEventArgs e)
+        {
+            if (DImgsCB.IsChecked == true)
+                DImgsBool = true;
+            else
+                DImgsBool = false;
+        }
+
+        private void SettingsCD_CloseButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+            File.WriteAllText(SettingsJSON, "{\"DownloadImgs\":\"" + DImgsBool.ToString() + "\"}");
         }
     }
 

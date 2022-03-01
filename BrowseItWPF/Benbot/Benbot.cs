@@ -4,7 +4,7 @@ namespace BrowseIt.BenBot
 {
     public class Benbot
     {
-        public static string GetImgURL(string asset, string gallery, string pathToSUA)
+        public static string GetImgURL(string asset, string pathToSUA)
         {
             string url = "";
             asset = asset + ".uasset";

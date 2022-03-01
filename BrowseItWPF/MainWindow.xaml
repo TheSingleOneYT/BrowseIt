@@ -13,7 +13,8 @@
         MinHeight="450" MinWidth="800">
 
     <Window.Resources>
-        <DataTemplate x:Key="ContactListViewTemplate" DataType="local:Item">
+        <DataTemplate x:Key="PropList" DataType="local:Item">
+            <!--Inspired by xamlcontrolsgallery://item/ListView, "Listview with Selection Support-->
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
@@ -55,6 +56,7 @@
                 <ui:AppBarToggleButton Icon="SlideShow" Label="Show Pop-up" IsChecked="True" x:Name="ShowCD"/>
                 <ui:AppBarButton Icon="Refresh" Label="Refresh Database" Click="Refresh_Click"/>
                 <ui:AppBarButton Icon="Help" Label="About" Click="AboutProj_Click"/>
+                <ui:AppBarButton Icon="Setting" Label="Settings" x:Name="SettingsAppBarBTN" Click="SettingsAppBarBTN_Click"/>
                 <ui:AppBarButton Label="Database Tools">
                     <ui:AppBarButton.Icon>
                         <ui:FontIcon Glyph="&#xEC7A;"/>
@@ -83,7 +85,7 @@
             <TextBlock Text="-------------------------" HorizontalAlignment="Center" FontSize="20"/>
             <ui:ListView
                 SelectionMode="Single"
-                ItemTemplate="{StaticResource ContactListViewTemplate}"
+                ItemTemplate="{StaticResource PropList}"
                 x:Name="name"
                 IsItemClickEnabled="True"
                 MouseDoubleClick="name_MouseDoubleClick"
