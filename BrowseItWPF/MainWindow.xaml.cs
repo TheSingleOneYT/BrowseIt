@@ -513,7 +513,7 @@ namespace BrowseItWPF
                     TextBlock dashes = new TextBlock();
 
                     pp.ProfilePicture = new BitmapImage(new Uri(Benbot.GetImgURL(itemClicked.Name, pathToSUA)));
-                    tb.Text = $"NAME: {itemClicked.Name}\nGALLERY: {itemClicked.Gallery}";
+                    tb.Text = $"NAME: {itemClicked.Name}\nGALLERY/PREFAB: {itemClicked.Gallery}";
                     dashes.Text = "---------";
                     dashes.HorizontalAlignment = HorizontalAlignment.Center;
 

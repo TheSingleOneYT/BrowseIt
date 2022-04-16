@@ -2,7 +2,7 @@
 ; https://jrsoftware.org/isinfo.php
 
 #define MyAppName "BrowseIt"
-#define MyAppVersion "1.3.1"
+#define MyAppVersion "1.3.2"
 #define MyAppPublisher "TS1"
 #define MyAppURL "https://github.com/TheSingleOneYT/BrowseIt"
 #define MyAppExeName "BrowseIt.exe"

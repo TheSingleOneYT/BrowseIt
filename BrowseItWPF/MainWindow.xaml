@@ -14,7 +14,7 @@
 
     <Window.Resources>
         <DataTemplate x:Key="PropList" DataType="local:Item">
-            <!--Inspired by xamlcontrolsgallery://item/ListView, "Listview with Selection Support-->
+            <!--Inspired by xamlcontrolsgallery://item/ListView, "Listview with Selection Support"-->
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
