@@ -1,5 +1,7 @@
 # BrowseIt
 
+**This project has now been discontinued.**
+
 A [Fortnite Creative](https://www.epicgames.com/fortnite/en-US/creative) [prop](https://www.epicgames.com/fortnite/en-US/creative/docs/fortnite-creative-glossary#prop) browser to help you build new and exciting creations in Forntite Creative.
 
 # How?
